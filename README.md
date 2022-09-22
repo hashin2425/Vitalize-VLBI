@@ -1,2 +1,3 @@
-# Internal-VLBI
+# Vitalize-VLBI
+
 「VLBIの民営化計画」のプロジェクトとして開発されたアンテナの自動天体追尾システム
