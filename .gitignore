@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# cache / debug
+obj/
+bin/
+.vs/
+
