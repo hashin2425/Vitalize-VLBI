@@ -27,7 +27,7 @@ namespace VLBI_Terminal
             public double longitude;
             public double latitude;
         }
-        private List<FixedStar_info> star_infos = new List<FixedStar_info>();
+        private readonly List<FixedStar_info> star_infos = new List<FixedStar_info>();
 
         private void Gps_button_Click(object sender, EventArgs e)
         {
@@ -50,8 +50,8 @@ namespace VLBI_Terminal
         private void MainForm_Load(object sender, EventArgs e)
         {
             //
-            dateTimePicker1.Format = DateTimePickerFormat.Custom;
-            dateTimePicker1.CustomFormat = "yyyy/MM/dd hh:mm:ss";
+            dateTimePicker.Format = DateTimePickerFormat.Custom;
+            dateTimePicker.CustomFormat = "yyyy/MM/dd hh:mm:ss";
 
             //
             foreach (var item in star_infos) star_combo.Items.Add(item.name_jp);
@@ -60,18 +60,34 @@ namespace VLBI_Terminal
             //
             showTopmostToolStripMenuItem.Checked = true;
             TopMost = true;
+
+            //
+            follow_time_checkbox.Checked = true;
+            dateTimePicker.Enabled = false;
+            offset_tableLayoutPanel.Enabled = true;
         }
 
         private void Timer_1sec_Tick(object sender, EventArgs e)
         {
-            dateTimePicker1.Value = DateTime.Now;
-            Calc_direction();
+            if (follow_time_checkbox.Checked)
+            {
+                DateTime time = DateTime.Now;
+                try
+                {
+                    time = time.AddDays(Convert.ToInt16(day_offset_textbox.Text));
+                    time = time.AddHours(Convert.ToInt16(hour_offset_textbox.Text));
+                    time = time.AddMinutes(Convert.ToInt16(minute_offset_textbox.Text));
+                    time = time.AddSeconds(Convert.ToInt16(second_offset_textbox.Text));
+                }
+                catch { }
+                dateTimePicker.Value = time;
+            }
         }
         public double ToRadian(double angle) => (double)(angle * Math.PI / 180);
 
         public double ToAngle(double radian) => (double)(radian * 180 / Math.PI);
 
-        private void Calc_direction()
+        public void Calc_direction(object sender, EventArgs e)
         {
             try
             {
@@ -79,12 +95,12 @@ namespace VLBI_Terminal
                 double TARGET_LON_DEG = star_infos[star_combo.SelectedIndex].longitude;
                 double OBSERVER_IS_WESTERN_LONGITUDE = -1.0f; // 観測地点は西経かどうか：西経は1、東経は-1：アジア圏は全て(-1)
 
-                double _year = dateTimePicker1.Value.ToUniversalTime().Year;
-                double _month = dateTimePicker1.Value.ToUniversalTime().Month;
-                double _day = dateTimePicker1.Value.ToUniversalTime().Day;
-                double _hour = dateTimePicker1.Value.ToUniversalTime().Hour;
-                double _minute = dateTimePicker1.Value.ToUniversalTime().Minute;
-                double _second = dateTimePicker1.Value.ToUniversalTime().Second;
+                double _year = dateTimePicker.Value.ToUniversalTime().Year;
+                double _month = dateTimePicker.Value.ToUniversalTime().Month;
+                double _day = dateTimePicker.Value.ToUniversalTime().Day;
+                double _hour = dateTimePicker.Value.ToUniversalTime().Hour;
+                double _minute = dateTimePicker.Value.ToUniversalTime().Minute;
+                double _second = dateTimePicker.Value.ToUniversalTime().Second;
                 double gps_longitude_deg = Convert.ToDouble(longitude_textbox.Text);
                 double gps_latitude_deg = Convert.ToDouble(latitude_textbox.Text);
 
@@ -132,10 +148,34 @@ namespace VLBI_Terminal
             catch { return; }
         }
 
-        private void showTopmostToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ShowTopmostToolStripMenuItem_Click(object sender, EventArgs e)
         {
             showTopmostToolStripMenuItem.Checked = !showTopmostToolStripMenuItem.Checked;
             TopMost = showTopmostToolStripMenuItem.Checked;
+        }
+
+        private void Allow_nums2textbox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\b' || '-' == e.KeyChar)
+            {
+                return;
+            }
+            if ((e.KeyChar < '0' || '9' < e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void Follow_time_checkbox_CheckedChanged(object sender, EventArgs e)
+        {
+            //
+            dateTimePicker.Enabled = !follow_time_checkbox.Checked;
+            offset_tableLayoutPanel.Enabled = follow_time_checkbox.Checked;
+        }
+
+        private void exitXToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }
